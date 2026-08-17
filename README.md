@@ -1,5 +1,8 @@
 # 💡 md-nugget-notifier
 
+[![Test Suite](https://github.com/hector6872/md-nugget-notifier/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/hector6872/md-nugget-notifier/actions/workflows/test.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 > Pick a random Markdown note (a "nugget" of wisdom, idea, or reference) from any directory or Obsidian vault and push it as a native desktop notification.
 
 ---

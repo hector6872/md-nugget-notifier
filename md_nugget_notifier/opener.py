@@ -78,7 +78,7 @@ def _open_with_app(file_path: Path, app_name: str, system: str) -> bool:
 
 def _open_via_obsidian_uri(file_path: Path, vault_root: Optional[Path]) -> bool:
     """Construct and launch obsidian:// URI."""
-    if vault_root and vault_root.exists():
+    if vault_root:
         vault_name = vault_root.name
         try:
             rel_path = file_path.relative_to(vault_root)
