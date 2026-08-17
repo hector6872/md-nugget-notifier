@@ -178,6 +178,8 @@ Load it into launchd:
 launchctl load ~/Library/LaunchAgents/com.user.md-nugget-notifier.plist
 ```
 
+> **Tip:** You can generate and customize macOS launchd `.plist` files visually using [Launched (launched.zerowidth.com)](https://launched.zerowidth.com/).
+
 ### Option B: `cron` (macOS / Linux)
 
 Run `crontab -e` and add an entry:
