@@ -1,0 +1,12 @@
+{
+  "notes_dir": "~/Documents/Notes",
+  "opener": "system",
+  "ignored_dirs": [
+    "templates",
+    "archive",
+    ".attachments"
+  ],
+  "max_snippet_length": 220,
+  "min_size_bytes": 10,
+  "recursive": true
+}
