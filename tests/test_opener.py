@@ -12,8 +12,8 @@ from md_nugget_notifier.opener import (
 )
 
 
+@patch("md_nugget_notifier.opener.platform.system", return_value="Darwin")
 class TestOpener(unittest.TestCase):
-    @patch("md_nugget_notifier.opener.platform.system", return_value="Darwin")
     @patch("md_nugget_notifier.opener.subprocess.Popen")
     def test_open_with_app(self, mock_popen, mock_sys):
         file_path = Path("/tmp/notes/idea.md")
@@ -22,7 +22,7 @@ class TestOpener(unittest.TestCase):
         mock_popen.assert_called_once()
 
     @patch("md_nugget_notifier.opener.subprocess.Popen")
-    def test_open_with_cmd(self, mock_popen):
+    def test_open_with_cmd(self, mock_popen, mock_sys):
         file_path = Path("/tmp/notes/idea.md")
         res = open_note(file_path, opener="cmd:code {path}")
         self.assertTrue(res)
@@ -30,13 +30,12 @@ class TestOpener(unittest.TestCase):
 
     @patch.dict(os.environ, {"EDITOR": "vim"})
     @patch("md_nugget_notifier.opener.subprocess.Popen")
-    def test_open_with_editor(self, mock_popen):
+    def test_open_with_editor(self, mock_popen, mock_sys):
         file_path = Path("/tmp/notes/idea.md")
         res = open_note(file_path, opener="editor")
         self.assertTrue(res)
         mock_popen.assert_called_once_with(["vim", str(file_path.resolve())])
 
-    @patch("md_nugget_notifier.opener.platform.system", return_value="Darwin")
     @patch("md_nugget_notifier.opener.subprocess.Popen")
     def test_open_obsidian_uri_macos(self, mock_popen, mock_sys):
         vault = Path("/tmp/MyVault")
@@ -49,14 +48,14 @@ class TestOpener(unittest.TestCase):
         self.assertIn("obsidian://open?vault=MyVault&file=Folder/My%20Note.md", call_args[1])
 
     @patch("md_nugget_notifier.opener.subprocess.Popen")
-    def test_open_system_default_macos(self, mock_popen):
+    def test_open_system_default_macos(self, mock_popen, mock_sys):
         file_path = Path("/tmp/note.md")
         res = _open_with_system_default(file_path, system="Darwin")
         self.assertTrue(res)
         mock_popen.assert_called_once_with(["open", str(file_path)])
 
     @patch("md_nugget_notifier.opener.subprocess.Popen")
-    def test_open_system_default_linux(self, mock_popen):
+    def test_open_system_default_linux(self, mock_popen, mock_sys):
         file_path = Path("/tmp/note.md")
         res = _open_with_system_default(file_path, system="Linux")
         self.assertTrue(res)
