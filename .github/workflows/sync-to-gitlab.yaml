@@ -1,7 +1,6 @@
 name: Sync Repository to GitLab
 
 on:
-  workflow_dispatch:
   push:
     branches: [dev, main]
   pull_request:
