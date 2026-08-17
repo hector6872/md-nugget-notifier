@@ -8,5 +8,6 @@
   ],
   "max_snippet_length": 220,
   "min_size_bytes": 10,
-  "recursive": true
+  "recursive": true,
+  "icon": "obsidian"
 }

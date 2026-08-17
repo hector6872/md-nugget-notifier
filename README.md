@@ -60,7 +60,7 @@ To receive beautiful banner notifications with click-to-open support on macOS:
 ## 🛠️ CLI Usage
 
 ```text
-usage: md-nugget-notifier [-h] [-d NOTES_DIR] [-o] [-a] [--no-recursive] [-q] [-p] [--json] [--opener OPENER] [-c CONFIG_PATH] [-v]
+usage: md-nugget-notifier [-h] [-d NOTES_DIR] [-o] [-a] [--no-recursive] [-l MAX_LENGTH] [--icon ICON] [-q] [-p] [--json] [--opener OPENER] [-c CONFIG_PATH] [-v]
 
 Pick a random Markdown note and send it as a native desktop notification.
 
@@ -71,6 +71,9 @@ options:
   -a, --alert           Display as an interactive pop-up dialog/alert window.
   --no-recursive, --flat
                         Only search for .md notes in the specified root directory (non-recursive).
+  -l, --length, --max-length MAX_LENGTH
+                        Maximum length of the preview snippet (characters). Default: 220.
+  --icon ICON           Icon for notification: image path or 'obsidian' (macOS app icon).
   -q, --quiet           Do not print dispatch confirmation to terminal.
   -p, --preview         Print the selected note title and snippet to the terminal without sending a notification.
   --json                Output the selected note details in JSON format.

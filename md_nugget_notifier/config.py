@@ -15,6 +15,7 @@ class AppConfig:
     max_snippet_length: int = 220
     min_size_bytes: int = 1
     recursive: bool = True
+    icon: Optional[str] = None
 
 
 def get_default_config_paths() -> List[Path]:
@@ -71,6 +72,9 @@ def load_config(custom_config_path: Optional[Path] = None) -> AppConfig:
 
             if "recursive" in data:
                 cfg.recursive = bool(data["recursive"])
+
+            if "icon" in data and data["icon"]:
+                cfg.icon = str(data["icon"])
         except Exception as e:
             print(f"Warning: Failed to load config from {config_file}: {e}")
 
@@ -86,6 +90,14 @@ def load_config(custom_config_path: Optional[Path] = None) -> AppConfig:
     env_opener = os.environ.get("MD_NOTIFIER_OPENER")
     if env_opener:
         cfg.opener = env_opener
+
+    env_length = os.environ.get("MD_NOTIFIER_MAX_LENGTH")
+    if env_length and env_length.isdigit():
+        cfg.max_snippet_length = int(env_length)
+
+    env_icon = os.environ.get("MD_NOTIFIER_ICON")
+    if env_icon:
+        cfg.icon = env_icon
 
     env_recursive = os.environ.get("MD_NOTIFIER_RECURSIVE")
     if env_recursive is not None:

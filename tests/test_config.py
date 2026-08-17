@@ -28,6 +28,7 @@ class TestConfig(unittest.TestCase):
                 "max_snippet_length": 150,
                 "min_size_bytes": 5,
                 "recursive": False,
+                "icon": "obsidian",
             }
             config_file.write_text(json.dumps(data), encoding="utf-8")
 
@@ -38,6 +39,7 @@ class TestConfig(unittest.TestCase):
             self.assertEqual(cfg.max_snippet_length, 150)
             self.assertEqual(cfg.min_size_bytes, 5)
             self.assertFalse(cfg.recursive)
+            self.assertEqual(cfg.icon, "obsidian")
 
     def test_load_config_with_vault_path_key(self):
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -52,12 +54,16 @@ class TestConfig(unittest.TestCase):
         "MD_NOTES_DIR": "/tmp/custom_notes_dir",
         "MD_NOTIFIER_OPENER": "obsidian",
         "MD_NOTIFIER_RECURSIVE": "false",
+        "MD_NOTIFIER_MAX_LENGTH": "400",
+        "MD_NOTIFIER_ICON": "/path/to/icon.png",
     })
     def test_load_config_env_overrides(self):
         cfg = load_config()
         self.assertEqual(cfg.notes_dir, Path("/tmp/custom_notes_dir").resolve())
         self.assertEqual(cfg.opener, "obsidian")
         self.assertFalse(cfg.recursive)
+        self.assertEqual(cfg.max_snippet_length, 400)
+        self.assertEqual(cfg.icon, "/path/to/icon.png")
 
     def test_get_default_config_paths(self):
         paths = get_default_config_paths()

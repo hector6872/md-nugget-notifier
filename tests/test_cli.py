@@ -95,6 +95,39 @@ class TestCLI(unittest.TestCase):
                     self.assertEqual(code, 0)
                     mock_open.assert_called_once()
 
+    @patch("md_nugget_notifier.cli.send_notification")
+    def test_cli_icon_and_length_flags(self, mock_notify):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            note = Path(tmpdir) / "note.md"
+            note.write_text("A" * 300, encoding="utf-8")
+
+            test_args = [
+                "md-nugget-notifier",
+                "--dir", tmpdir,
+                "--icon", "obsidian",
+                "--length", "50",
+            ]
+            with patch.object(sys, "argv", test_args):
+                with patch("sys.stdout", new=io.StringIO()):
+                    code = main()
+                    self.assertEqual(code, 0)
+                    mock_notify.assert_called_once()
+                    kwargs = mock_notify.call_args[1]
+                    self.assertEqual(kwargs.get("icon"), "obsidian")
+                    # Check snippet length truncated to ~50 + ellipsis
+                    self.assertTrue(len(kwargs.get("message")) <= 55)
+
+    @patch("md_nugget_notifier.cli.pick_random_note")
+    def test_cli_no_recursive_flag(self, mock_pick):
+        mock_pick.return_value = None
+        with tempfile.TemporaryDirectory() as tmpdir:
+            test_args = ["md-nugget-notifier", "--dir", tmpdir, "--no-recursive"]
+            with patch.object(sys, "argv", test_args):
+                with patch("sys.stderr", new=io.StringIO()):
+                    main()
+                    mock_pick.assert_called_once()
+                    self.assertFalse(mock_pick.call_args[1].get("recursive"))
+
 
 if __name__ == "__main__":
     unittest.main()
