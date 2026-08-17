@@ -87,6 +87,10 @@ def load_config(custom_config_path: Optional[Path] = None) -> AppConfig:
     if env_opener:
         cfg.opener = env_opener
 
+    env_length = os.environ.get("MD_NOTIFIER_MAX_LENGTH")
+    if env_length and env_length.isdigit():
+        cfg.max_snippet_length = int(env_length)
+
     env_recursive = os.environ.get("MD_NOTIFIER_RECURSIVE")
     if env_recursive is not None:
         cfg.recursive = env_recursive.lower() not in ("0", "false", "no")

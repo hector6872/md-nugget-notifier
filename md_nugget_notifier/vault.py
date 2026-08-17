@@ -1,19 +1,12 @@
 """Scanner and random note selector for markdown directories."""
 
+import os
 import random
 from pathlib import Path
 from typing import List, Optional, Set
 
 DEFAULT_IGNORED_DIRS = {
-    ".git",
-    ".obsidian",
-    ".trash",
-    ".stversions",
-    ".stfolder",
-    ".vscode",
-    ".idea",
     "node_modules",
-    ".venv",
     "venv",
     "__pycache__",
 }
@@ -25,9 +18,10 @@ def find_all_markdown_notes(
     min_size_bytes: int = 1,
     recursive: bool = True,
 ) -> List[Path]:
-    """Scan directory for all markdown files, skipping ignored folders.
-    
-    If recursive is True, scans all subdirectories; if False, only scans the top-level directory.
+    """Scan directory for all markdown files, skipping all dot directories and ignored folders.
+
+    Uses efficient top-down pruning to automatically skip any folder starting with a dot ('.')
+    and any user-specified ignored directories.
     """
     if ignored_dir_names is None:
         ignored_dirs = DEFAULT_IGNORED_DIRS
@@ -38,19 +32,38 @@ def find_all_markdown_notes(
     if not directory.exists() or not directory.is_dir():
         return notes
 
-    iterator = directory.rglob("*.md") if recursive else directory.glob("*.md")
-
-    for file_path in iterator:
-        # Check if any parent folder matches ignored folders
-        parts_set = set(file_path.parts[:-1])
-        if parts_set.intersection(ignored_dirs):
-            continue
-
+    if not recursive:
         try:
-            if file_path.is_file() and file_path.stat().st_size >= min_size_bytes:
-                notes.append(file_path)
+            for entry in directory.iterdir():
+                # Skip hidden files/directories and check .md extension
+                if not entry.name.startswith(".") and entry.is_file() and entry.suffix.lower() == ".md":
+                    try:
+                        if entry.stat().st_size >= min_size_bytes:
+                            notes.append(entry)
+                    except OSError:
+                        continue
         except OSError:
-            continue
+            pass
+        return notes
+
+    # Fast top-down walk with in-place directory pruning
+    for root, dirs, files in os.walk(str(directory), topdown=True, followlinks=False):
+        # Discard all hidden directories starting with '.' and any custom ignored folders
+        dirs[:] = [
+            d for d in dirs
+            if not d.startswith(".") and d not in ignored_dirs
+        ]
+
+        root_path = Path(root)
+        for f in files:
+            # Skip hidden files starting with '.' and only match markdown files
+            if not f.startswith(".") and f.lower().endswith(".md"):
+                file_path = root_path / f
+                try:
+                    if file_path.stat().st_size >= min_size_bytes:
+                        notes.append(file_path)
+                except OSError:
+                    continue
 
     return notes
 

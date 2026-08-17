@@ -32,16 +32,35 @@ def send_notification(
         return _send_fallback_notification(title, message)
 
 
-def show_alert(title: str, message: str) -> bool:
-    """Display an interactive modal alert/dialog window across macOS, Linux, and Windows."""
+def show_alert(
+    title: str,
+    message: str,
+    file_path: Optional[Path] = None,
+    opener: Optional[str] = None,
+    vault_root: Optional[Path] = None,
+) -> bool:
+    """Display an interactive modal alert/dialog window across macOS, Linux, and Windows.
+    
+    The window stays pinned on screen until the user dismisses it or clicks 'Abrir' / 'Open'.
+    """
     system = platform.system()
 
     if system == "Darwin":
         clean_title = title.replace('"', '\\"')
         clean_msg = message.replace('"', '\\"')
-        script = f'display alert "💡 {clean_title}" message "{clean_msg}" as informational'
+        if file_path:
+            script = f'''
+            set theAlert to display alert "💡 {clean_title}" message "{clean_msg}" buttons {{"Cerrar", "Abrir Nota"}} default button "Abrir Nota"
+            return button returned of theAlert
+            '''
+        else:
+            script = f'display alert "💡 {clean_title}" message "{clean_msg}" as informational'
+
         try:
             res = subprocess.run(["osascript", "-e", script], capture_output=True, text=True)
+            if file_path and "Abrir Nota" in res.stdout:
+                from .opener import open_note
+                open_note(file_path, opener=opener, vault_root=vault_root)
             return res.returncode == 0
         except Exception:
             pass
@@ -107,11 +126,10 @@ def _send_macos_notification(
     vault_root: Optional[Path] = None,
 ) -> bool:
     """Send notification on macOS."""
-    # Escape quotes for AppleScript / shell
     clean_title = title.replace('"', '\\"')
     clean_msg = message.replace('"', '\\"')
 
-    # If terminal-notifier is available and we have a target file, we can attach an open action
+    # If terminal-notifier is available and we have a target file, attach direct click action
     if shutil.which("terminal-notifier") and file_path:
         args = [
             "terminal-notifier",
@@ -123,8 +141,8 @@ def _send_macos_notification(
             import urllib.parse
             vault_name = vault_root.name if vault_root else file_path.parent.name
             try:
-                rel = file_path.relative_to(vault_root) if vault_root else file_path
-                param = rel.as_posix()
+                rel = file_path.relative_to(vault_root) if vault_root else file_path.name
+                param = str(rel)
             except ValueError:
                 param = file_path.name
             uri = f"obsidian://open?vault={urllib.parse.quote(vault_name)}&file={urllib.parse.quote(param)}"

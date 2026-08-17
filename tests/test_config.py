@@ -52,12 +52,14 @@ class TestConfig(unittest.TestCase):
         "MD_NOTES_DIR": "/tmp/custom_notes_dir",
         "MD_NOTIFIER_OPENER": "obsidian",
         "MD_NOTIFIER_RECURSIVE": "false",
+        "MD_NOTIFIER_MAX_LENGTH": "400",
     })
     def test_load_config_env_overrides(self):
         cfg = load_config()
         self.assertEqual(cfg.notes_dir, Path("/tmp/custom_notes_dir").resolve())
         self.assertEqual(cfg.opener, "obsidian")
         self.assertFalse(cfg.recursive)
+        self.assertEqual(cfg.max_snippet_length, 400)
 
     def test_get_default_config_paths(self):
         paths = get_default_config_paths()
