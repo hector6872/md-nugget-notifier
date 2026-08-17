@@ -123,8 +123,8 @@ def _send_macos_notification(
             import urllib.parse
             vault_name = vault_root.name if vault_root else file_path.parent.name
             try:
-                rel = file_path.relative_to(vault_root) if vault_root else file_path.name
-                param = str(rel)
+                rel = file_path.relative_to(vault_root) if vault_root else file_path
+                param = rel.as_posix()
             except ValueError:
                 param = file_path.name
             uri = f"obsidian://open?vault={urllib.parse.quote(vault_name)}&file={urllib.parse.quote(param)}"

@@ -82,7 +82,7 @@ def _open_via_obsidian_uri(file_path: Path, vault_root: Optional[Path]) -> bool:
         vault_name = vault_root.name
         try:
             rel_path = file_path.relative_to(vault_root)
-            file_param = str(rel_path)
+            file_param = rel_path.as_posix()
         except ValueError:
             file_param = file_path.name
     else:
