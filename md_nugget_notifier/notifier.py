@@ -141,7 +141,7 @@ def _send_macos_notification(
             "-sound", "default",
         ]
 
-        # Handle Icon (only set -sender if explicitly requested, as macOS requires permissions for custom senders)
+        # Handle Icon
         if icon:
             icon_lower = icon.lower()
             if icon_lower in ("obsidian", "md.obsidian"):
@@ -157,8 +157,10 @@ def _send_macos_notification(
                 else:
                     args.extend(["-sender", icon])
         elif opener in ("obsidian_uri", "obsidian"):
-            # When opener is obsidian, we can optionally use Obsidian's identity if desired
-            pass
+            args.extend(["-sender", "md.obsidian"])
+        else:
+            # Default to macOS TextEdit (notes) icon instead of black terminal icon
+            args.extend(["-sender", "com.apple.TextEdit"])
 
         # Handle Click Action
         if opener in ("obsidian_uri", "obsidian"):
