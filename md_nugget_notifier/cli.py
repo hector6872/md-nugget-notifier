@@ -72,11 +72,6 @@ def main() -> int:
         help="Maximum length of the preview snippet (in characters). Default: 220.",
     )
     parser.add_argument(
-        "--icon",
-        type=str,
-        help="Icon for notification: path to image/icns file, or 'obsidian' to use Obsidian's app icon.",
-    )
-    parser.add_argument(
         "--opener",
         type=str,
         help="Opener strategy: 'system' (default), 'obsidian', 'app:<App Name>', 'cmd:<Template with {path}>', 'editor'.",
@@ -108,8 +103,6 @@ def main() -> int:
         cfg.opener = args.opener
     if args.max_length is not None:
         cfg.max_snippet_length = args.max_length
-    if args.icon:
-        cfg.icon = args.icon
     if args.recursive is not None:
         cfg.recursive = args.recursive
 
@@ -172,7 +165,6 @@ def main() -> int:
             file_path=chosen_file,
             opener=cfg.opener,
             vault_root=cfg.notes_dir,
-            icon=cfg.icon,
         )
         if not args.quiet:
             print(f"💡 Alert dialog shown: \"{title}\" ({chosen_file.name})")
@@ -183,7 +175,6 @@ def main() -> int:
             file_path=chosen_file,
             opener=cfg.opener,
             vault_root=cfg.notes_dir,
-            icon=cfg.icon,
         )
         if not args.quiet:
             print(f"💡 Notification sent: \"{title}\" ({chosen_file.name})")

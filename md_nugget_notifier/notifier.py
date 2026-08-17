@@ -1,6 +1,5 @@
 """Native cross-platform desktop notification dispatcher."""
 
-import os
 import platform
 import shutil
 import subprocess
@@ -15,7 +14,6 @@ def send_notification(
     file_path: Optional[Path] = None,
     opener: Optional[str] = None,
     vault_root: Optional[Path] = None,
-    icon: Optional[str] = None,
 ) -> bool:
     """Send a native OS notification.
 
@@ -25,9 +23,9 @@ def send_notification(
     system = platform.system()
 
     if system == "Darwin":
-        return _send_macos_notification(title, message, file_path, opener, vault_root, icon)
+        return _send_macos_notification(title, message, file_path, opener, vault_root)
     elif system == "Linux":
-        return _send_linux_notification(title, message, icon)
+        return _send_linux_notification(title, message)
     elif system == "Windows":
         return _send_windows_notification(title, message)
     else:
@@ -40,7 +38,6 @@ def show_alert(
     file_path: Optional[Path] = None,
     opener: Optional[str] = None,
     vault_root: Optional[Path] = None,
-    icon: Optional[str] = None,
 ) -> bool:
     """Display an interactive modal alert/dialog window across macOS, Linux, and Windows.
     
@@ -72,20 +69,22 @@ def show_alert(
         # 1. Try zenity (GNOME / standard desktop)
         if shutil.which("zenity"):
             try:
-                cmd = ["zenity", "--info", f"--title=💡 {title}", f"--text={message}", "--width=350"]
-                if icon:
-                    cmd.append(f"--window-icon={icon}")
-                res = subprocess.run(cmd, capture_output=True, text=True)
+                res = subprocess.run(
+                    ["zenity", "--info", f"--title=💡 {title}", f"--text={message}", "--width=350"],
+                    capture_output=True,
+                    text=True,
+                )
                 return res.returncode == 0
             except Exception:
                 pass
         # 2. Try kdialog (KDE)
         if shutil.which("kdialog"):
             try:
-                cmd = ["kdialog", "--msgbox", message, f"--title=💡 {title}"]
-                if icon:
-                    cmd.extend(["--icon", icon])
-                res = subprocess.run(cmd, capture_output=True, text=True)
+                res = subprocess.run(
+                    ["kdialog", "--msgbox", message, f"--title=💡 {title}"],
+                    capture_output=True,
+                    text=True,
+                )
                 return res.returncode == 0
             except Exception:
                 pass
@@ -125,7 +124,6 @@ def _send_macos_notification(
     file_path: Optional[Path] = None,
     opener: Optional[str] = None,
     vault_root: Optional[Path] = None,
-    icon: Optional[str] = None,
 ) -> bool:
     """Send notification on macOS."""
     clean_title = title.replace('"', '\\"')
@@ -138,61 +136,24 @@ def _send_macos_notification(
             "-title", title,
             "-message", message,
             "-group", "md-nugget-notifier",
-            "-sound", "default",
         ]
-
-        # Handle Icon
-        if icon:
-            icon_lower = icon.lower()
-            if icon_lower in ("obsidian", "md.obsidian"):
-                args.extend(["-sender", "md.obsidian"])
-            elif icon_lower in ("notes", "apple-notes", "apple_notes"):
-                args.extend(["-sender", "com.apple.Notes"])
-            elif icon_lower in ("textedit", "text-edit"):
-                args.extend(["-sender", "com.apple.TextEdit"])
-            else:
-                icon_path = Path(os.path.expanduser(icon)).resolve()
-                if icon_path.exists():
-                    args.extend(["-contentImage", str(icon_path)])
-                else:
-                    args.extend(["-sender", icon])
-        elif opener in ("obsidian_uri", "obsidian"):
-            args.extend(["-sender", "md.obsidian"])
-        else:
-            # Default to macOS TextEdit (notes) icon instead of black terminal icon
-            args.extend(["-sender", "com.apple.TextEdit"])
-
-        # Handle Click Action
         if opener in ("obsidian_uri", "obsidian"):
             import urllib.parse
             vault_name = vault_root.name if vault_root else file_path.parent.name
             try:
-                rel = file_path.relative_to(vault_root) if vault_root else file_path
-                param = rel.as_posix()
+                rel = file_path.relative_to(vault_root) if vault_root else file_path.name
+                param = str(rel)
             except ValueError:
                 param = file_path.name
             uri = f"obsidian://open?vault={urllib.parse.quote(vault_name)}&file={urllib.parse.quote(param)}"
             args.extend(["-open", uri])
-        elif opener and opener.startswith("app:"):
-            app_name = opener[4:].strip()
-            args.extend(["-execute", f'open -a "{app_name}" "{file_path.resolve()}"'])
-        elif opener and opener.startswith("cmd:"):
-            cmd_template = opener[4:].strip()
-            cmd_str = cmd_template.replace("{path}", str(file_path.resolve()))
-            args.extend(["-execute", cmd_str])
         else:
-            # Default system open
-            args.extend(["-open", f"file://{file_path.resolve()}"])
+            args.extend(["-execute", f'open "{file_path.resolve()}"'])
 
         try:
-            # Launch detached/non-blocking so it posts notification without blocking the CLI
-            subprocess.Popen(
-                args,
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
-                start_new_session=True,
-            )
-            return True
+            res = subprocess.run(args, capture_output=True, text=True)
+            if res.returncode == 0:
+                return True
         except Exception:
             pass
 
@@ -208,13 +169,12 @@ def _send_macos_notification(
         return False
 
 
-def _send_linux_notification(title: str, message: str, icon: Optional[str] = None) -> bool:
+def _send_linux_notification(title: str, message: str) -> bool:
     """Send notification using notify-send on Linux."""
     if shutil.which("notify-send"):
         try:
-            icon_arg = icon or "dialog-information"
             res = subprocess.run(
-                ["notify-send", f"💡 {title}", message, "-i", icon_arg],
+                ["notify-send", f"💡 {title}", message, "-i", "text-markdown"],
                 capture_output=True,
                 text=True,
             )

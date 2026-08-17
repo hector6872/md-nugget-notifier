@@ -26,34 +26,29 @@ class TestNotifier(unittest.TestCase):
         self.assertIn("display notification", args[2])
 
     @patch("md_nugget_notifier.notifier.shutil.which", return_value="/usr/local/bin/terminal-notifier")
-    @patch("md_nugget_notifier.notifier.subprocess.Popen")
-    def test_macos_notification_terminal_notifier(self, mock_popen, mock_which):
-        mock_popen.return_value = MagicMock()
+    @patch("md_nugget_notifier.notifier.subprocess.run")
+    def test_macos_notification_terminal_notifier(self, mock_run, mock_which):
+        mock_run.return_value = MagicMock(returncode=0)
         res = _send_macos_notification(
             "My Title",
             "My Message",
             file_path=Path("/tmp/note.md"),
             opener="system",
-            icon="obsidian",
         )
         self.assertTrue(res)
-        mock_popen.assert_called_once()
-        args = mock_popen.call_args[0][0]
+        mock_run.assert_called_once()
+        args = mock_run.call_args[0][0]
         self.assertEqual(args[0], "terminal-notifier")
-        self.assertIn("-sender", args)
-        self.assertIn("md.obsidian", args)
 
     @patch("md_nugget_notifier.notifier.shutil.which", return_value="/usr/bin/notify-send")
     @patch("md_nugget_notifier.notifier.subprocess.run")
     def test_linux_notification_notify_send(self, mock_run, mock_which):
         mock_run.return_value = MagicMock(returncode=0)
-        res = _send_linux_notification("Linux Title", "Linux Message", icon="obsidian")
+        res = _send_linux_notification("Linux Title", "Linux Message")
         self.assertTrue(res)
         mock_run.assert_called_once()
         args = mock_run.call_args[0][0]
         self.assertEqual(args[0], "notify-send")
-        self.assertIn("-i", args)
-        self.assertIn("obsidian", args)
 
     @patch("md_nugget_notifier.notifier.subprocess.run")
     def test_windows_notification_powershell(self, mock_run):

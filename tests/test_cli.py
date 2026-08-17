@@ -96,7 +96,7 @@ class TestCLI(unittest.TestCase):
                     mock_open.assert_called_once()
 
     @patch("md_nugget_notifier.cli.send_notification")
-    def test_cli_icon_and_length_flags(self, mock_notify):
+    def test_cli_length_flag(self, mock_notify):
         with tempfile.TemporaryDirectory() as tmpdir:
             note = Path(tmpdir) / "note.md"
             note.write_text("A" * 300, encoding="utf-8")
@@ -104,7 +104,6 @@ class TestCLI(unittest.TestCase):
             test_args = [
                 "md-nugget-notifier",
                 "--dir", tmpdir,
-                "--icon", "obsidian",
                 "--length", "50",
             ]
             with patch.object(sys, "argv", test_args):
@@ -113,7 +112,6 @@ class TestCLI(unittest.TestCase):
                     self.assertEqual(code, 0)
                     mock_notify.assert_called_once()
                     kwargs = mock_notify.call_args[1]
-                    self.assertEqual(kwargs.get("icon"), "obsidian")
                     # Check snippet length truncated to ~50 + ellipsis
                     self.assertTrue(len(kwargs.get("message")) <= 55)
 

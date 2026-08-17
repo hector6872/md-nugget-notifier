@@ -12,7 +12,6 @@
 - **Zero Mandatory Dependencies**: Runs with standard Python 3.8+ on macOS, Linux, and Windows.
 - **Any Markdown Folder**: Recursively scans `.md` files with fast top-down pruning that automatically skips all hidden directories (`.*` like `.git`, `.obsidian`, `.trash`, `.dropbox.cache`) and custom ignored folders.
 - **Smart Snippet Extraction**: Strips YAML frontmatter, headers, inline metadata, wikilinks (`[[Link|Alias]]` → `Alias`), markdown formatting, and images to generate clean, readable notification snippets.
-- **Customizable Icons**: Uses native clean note/information icons across macOS, Linux, and Windows, with presets for `obsidian`, `notes`, `textedit`, or custom image paths.
 - **Interactive Modals & Notifications**: Click notifications to open notes directly, or use `--alert` for an interactive pop-up window.
 - **Configurable Opener**:
   - System default application (Markdown editor, viewer, etc.)
@@ -49,20 +48,31 @@ To receive beautiful banner notifications with click-to-open support on macOS:
    ```bash
    brew install terminal-notifier
    ```
-   `md-nugget-notifier` will automatically detect it, display native macOS banners with clean editor icons, and configure click actions.
+   `md-nugget-notifier` will automatically detect it and configure click actions.
 
 2. **Or use the `--alert` / `-a` modal dialog (Zero extra dependencies):**
    ```bash
    md-nugget-notifier --dir /path/to/your/notes --alert
    ```
-   This displays an interactive macOS pop-up modal with **"Open Note"** and **"Close"** buttons.
+   This displays an interactive macOS pop-up modal with **"Abrir Nota"** and **"Cerrar"** buttons.
+
+### 🎨 Customizing Notification Icons on macOS
+
+In modern macOS (Ventura, Sonoma, Sequoia), attempting to dynamically change the notification icon via code using `-sender <bundle_id>` causes macOS to delegate all click handling directly to that application bundle, **which intercepts and breaks click-to-open actions and custom URIs**.
+
+If you wish to replace the default `terminal-notifier` icon with the **Obsidian icon** (or any other app icon) while keeping click-to-open working 100% reliably, you can replace the icon file inside the `terminal-notifier.app` bundle on your Mac:
+
+```bash
+# Copy Obsidian's official icon to terminal-notifier
+cp /Applications/Obsidian.app/Contents/Resources/icon.icns /opt/homebrew/Cellar/terminal-notifier/2.0.0/terminal-notifier.app/Contents/Resources/Terminal.icns
+```
 
 ---
 
 ## 🛠️ CLI Usage
 
 ```text
-usage: md-nugget-notifier [-h] [-d NOTES_DIR] [-o] [-a] [--no-recursive] [-l MAX_LENGTH] [--icon ICON] [-q] [-p] [--json] [--opener OPENER] [-c CONFIG_PATH] [-v]
+usage: md-nugget-notifier [-h] [-d NOTES_DIR] [-o] [-a] [--no-recursive] [-l MAX_LENGTH] [-q] [-p] [--json] [--opener OPENER] [-c CONFIG_PATH] [-v]
 
 Pick a random Markdown note and send it as a native desktop notification.
 
@@ -75,7 +85,6 @@ options:
                         Only search for .md notes in the specified root directory (non-recursive).
   -l, --length, --max-length MAX_LENGTH
                         Maximum length of the preview snippet (characters). Default: 220.
-  --icon ICON           Icon for notification: 'obsidian', 'notes', 'textedit', or custom image path.
   -q, --quiet           Do not print dispatch confirmation to terminal.
   -p, --preview         Print the selected note title and snippet to the terminal without sending a notification.
   --json                Output the selected note details in JSON format.
@@ -96,9 +105,9 @@ md-nugget-notifier --dir ~/Notes --no-recursive --preview
 md-nugget-notifier --dir ~/Notes --alert
 ```
 
-**Send notification with Obsidian's icon and open in Obsidian upon click:**
+**Send notification configured to open in Obsidian on click:**
 ```bash
-md-nugget-notifier --dir ~/Notes --icon obsidian --opener obsidian
+md-nugget-notifier --dir ~/Notes --opener obsidian
 ```
 
 **Send notification and open the note in default app:**
@@ -135,8 +144,7 @@ You can set a default configuration by creating `~/.config/md-nugget-notifier/co
   ],
   "max_snippet_length": 220,
   "min_size_bytes": 10,
-  "recursive": true,
-  "icon": "obsidian"
+  "recursive": true
 }
 ```
 
@@ -145,7 +153,6 @@ You can also configure via environment variables:
 - `MD_NOTES_DIR` or `NOTES_DIR` or `OBSIDIAN_VAULT_PATH`: Default path to markdown folder.
 - `MD_NOTIFIER_OPENER`: Default opener strategy.
 - `MD_NOTIFIER_RECURSIVE`: Set to `false` or `0` for non-recursive scanning.
-- `MD_NOTIFIER_ICON`: Default icon preset or image path.
 - `MD_NOTIFIER_MAX_LENGTH`: Maximum length of snippet text.
 
 ---
