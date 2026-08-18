@@ -204,5 +204,11 @@ python3 -m unittest discover tests
 
 ---
 
+## 🤝 Contributing
+
+Contributions, bug reports, and feature requests are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on development setup, testing, and pull requests.
+
+---
+
 ## 📄 License
 [MIT](LICENSE)
