@@ -209,7 +209,10 @@ python3 -m unittest discover tests
 
 ## 🤝 Contributing
 
-Contributions, bug reports, and feature requests are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on development setup, testing, and pull requests.
+Contributions, bug reports, and testers are very welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on development setup, testing, and pull requests.
+
+> [!NOTE]
+> This tool has been developed and tested primarily on macOS. It has not yet been thoroughly tested on Linux and Windows. Any feedback, testing, or contributions for these platforms are very welcome!
 
 ---
 
