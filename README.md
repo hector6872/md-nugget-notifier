@@ -7,6 +7,14 @@
 
 ---
 
+## 🧠 Motivation
+
+We often capture valuable notes, insights, and ideas only to let them sit forgotten in our knowledge vaults. **`md-nugget-notifier`** was built to fight the forgetting curve using a lightweight, primitive approach to [spaced repetition](https://en.wikipedia.org/wiki/Spaced_repetition) and [active recall](https://en.wikipedia.org/wiki/Active_recall).
+
+By resurfacing random nuggets from your markdown notes throughout the day, it prompts spontaneous recall and keeps your personal knowledge active and top of mind, without the overhead of maintaining formal flashcard decks.
+
+---
+
 ## ✨ Features
 
 - **Zero Mandatory Dependencies**: Runs with standard Python 3.8+ on macOS, Linux, and Windows.
@@ -133,11 +141,6 @@ You can set a default configuration by creating `~/.config/md-nugget-notifier/co
 }
 ```
 
-### Environment Variables
-You can also configure via environment variables:
-- `MD_NOTES_DIR` or `NOTES_DIR` or `OBSIDIAN_VAULT_PATH`: Default path to markdown folder.
-- `MD_NOTIFIER_OPENER`: Default opener strategy.
-
 ---
 
 ## ⏰ Scheduling Automated Daily / Hourly Notifications
@@ -206,7 +209,10 @@ python3 -m unittest discover tests
 
 ## 🤝 Contributing
 
-Contributions, bug reports, and feature requests are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on development setup, testing, and pull requests.
+Contributions, bug reports, and testers are very welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on development setup, testing, and pull requests.
+
+> [!NOTE]
+> This tool has been developed and tested primarily on macOS. It has not yet been thoroughly tested on Linux and Windows. Any feedback, testing, or contributions for these platforms are very welcome!
 
 ---
 

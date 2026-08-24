@@ -34,7 +34,7 @@ def get_default_config_paths() -> List[Path]:
 
 
 def load_config(custom_config_path: Optional[Path] = None) -> AppConfig:
-    """Load configuration from file or environment variables."""
+    """Load configuration from file."""
     cfg = AppConfig()
 
     # Load from config file if found
@@ -73,26 +73,5 @@ def load_config(custom_config_path: Optional[Path] = None) -> AppConfig:
                 cfg.recursive = bool(data["recursive"])
         except Exception as e:
             print(f"Warning: Failed to load config from {config_file}: {e}")
-
-    # Environment variables override config file
-    env_dir = (
-        os.environ.get("MD_NOTES_DIR")
-        or os.environ.get("NOTES_DIR")
-        or os.environ.get("OBSIDIAN_VAULT_PATH")
-    )
-    if env_dir:
-        cfg.notes_dir = Path(os.path.expanduser(env_dir)).resolve()
-
-    env_opener = os.environ.get("MD_NOTIFIER_OPENER")
-    if env_opener:
-        cfg.opener = env_opener
-
-    env_length = os.environ.get("MD_NOTIFIER_MAX_LENGTH")
-    if env_length and env_length.isdigit():
-        cfg.max_snippet_length = int(env_length)
-
-    env_recursive = os.environ.get("MD_NOTIFIER_RECURSIVE")
-    if env_recursive is not None:
-        cfg.recursive = env_recursive.lower() not in ("0", "false", "no")
 
     return cfg

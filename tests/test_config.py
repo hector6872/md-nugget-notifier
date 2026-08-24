@@ -1,11 +1,9 @@
 """Unit tests for configuration loading."""
 
 import json
-import os
 import tempfile
 import unittest
 from pathlib import Path
-from unittest.mock import patch
 
 from md_nugget_notifier.config import AppConfig, get_default_config_paths, load_config
 
@@ -47,19 +45,6 @@ class TestConfig(unittest.TestCase):
 
             cfg = load_config(config_file)
             self.assertEqual(cfg.notes_dir, Path(tmpdir).resolve())
-
-    @patch.dict(os.environ, {
-        "MD_NOTES_DIR": "/tmp/custom_notes_dir",
-        "MD_NOTIFIER_OPENER": "obsidian",
-        "MD_NOTIFIER_RECURSIVE": "false",
-        "MD_NOTIFIER_MAX_LENGTH": "400",
-    })
-    def test_load_config_env_overrides(self):
-        cfg = load_config()
-        self.assertEqual(cfg.notes_dir, Path("/tmp/custom_notes_dir").resolve())
-        self.assertEqual(cfg.opener, "obsidian")
-        self.assertFalse(cfg.recursive)
-        self.assertEqual(cfg.max_snippet_length, 400)
 
     def test_get_default_config_paths(self):
         paths = get_default_config_paths()
