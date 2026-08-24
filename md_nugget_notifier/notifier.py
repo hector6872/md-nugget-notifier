@@ -133,7 +133,7 @@ def _send_macos_notification(
     if shutil.which("terminal-notifier") and file_path:
         args = [
             "terminal-notifier",
-            "-title", title,
+            "-title", f"💡 {title}",
             "-message", message,
             "-group", "md-nugget-notifier",
         ]
