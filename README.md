@@ -7,6 +7,14 @@
 
 ---
 
+## 🧠 Motivation
+
+We often capture valuable notes, insights, and ideas only to let them sit forgotten in our knowledge vaults. **`md-nugget-notifier`** was built to fight the forgetting curve using a lightweight, primitive approach to [spaced repetition](https://en.wikipedia.org/wiki/Spaced_repetition) and [active recall](https://en.wikipedia.org/wiki/Active_recall).
+
+By resurfacing random nuggets from your markdown notes throughout the day, it prompts spontaneous recall and keeps your personal knowledge active and top of mind, without the overhead of maintaining formal flashcard decks.
+
+---
+
 ## ✨ Features
 
 - **Zero Mandatory Dependencies**: Runs with standard Python 3.8+ on macOS, Linux, and Windows.
