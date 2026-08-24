@@ -50,11 +50,11 @@ def show_alert(
         clean_msg = message.replace('"', '\\"')
         if file_path:
             script = f'''
-            set theAlert to display alert "💡 {clean_title}" message "{clean_msg}" buttons {{"Cerrar", "Abrir Nota"}} default button "Abrir Nota"
+            set theAlert to display alert "{clean_title}" message "{clean_msg}" buttons {{"Cerrar", "Abrir Nota"}} default button "Abrir Nota"
             return button returned of theAlert
             '''
         else:
-            script = f'display alert "💡 {clean_title}" message "{clean_msg}" as informational'
+            script = f'display alert "{clean_title}" message "{clean_msg}" as informational'
 
         try:
             res = subprocess.run(["osascript", "-e", script], capture_output=True, text=True)
@@ -70,7 +70,7 @@ def show_alert(
         if shutil.which("zenity"):
             try:
                 res = subprocess.run(
-                    ["zenity", "--info", f"--title=💡 {title}", f"--text={message}", "--width=350"],
+                    ["zenity", "--info", f"--title={title}", f"--text={message}", "--width=350"],
                     capture_output=True,
                     text=True,
                 )
@@ -81,7 +81,7 @@ def show_alert(
         if shutil.which("kdialog"):
             try:
                 res = subprocess.run(
-                    ["kdialog", "--msgbox", message, f"--title=💡 {title}"],
+                    ["kdialog", "--msgbox", message, f"--title={title}"],
                     capture_output=True,
                     text=True,
                 )
@@ -93,7 +93,7 @@ def show_alert(
         # PowerShell WinForms message box
         ps_cmd = f"""
         Add-Type -AssemblyName System.Windows.Forms
-        [System.Windows.Forms.MessageBox]::Show('{message.replace("'", "''")}', '💡 {title.replace("'", "''")}', [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)
+        [System.Windows.Forms.MessageBox]::Show('{message.replace("'", "''")}', '{title.replace("'", "''")}', [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)
         """
         try:
             res = subprocess.run(["powershell", "-Command", ps_cmd], capture_output=True, text=True)
@@ -110,11 +110,11 @@ def show_alert(
         root = tk.Tk()
         root.withdraw()
         root.attributes("-topmost", True)
-        messagebox.showinfo(f"💡 {title}", message)
+        messagebox.showinfo(title, message)
         root.destroy()
         return True
     except Exception:
-        print(f"\n================ 💡 {title} ================\n{message}\n==================================================")
+        print(f"\n================ {title} ================\n{message}\n==================================================")
         return False
 
 
@@ -133,7 +133,7 @@ def _send_macos_notification(
     if shutil.which("terminal-notifier") and file_path:
         args = [
             "terminal-notifier",
-            "-title", f"💡 {title}",
+            "-title", title,
             "-message", message,
             "-group", "md-nugget-notifier",
         ]
@@ -158,7 +158,7 @@ def _send_macos_notification(
             pass
 
     # Built-in AppleScript notification with sound
-    script = f'display notification "{clean_msg}" with title "💡 {clean_title}" sound name "default"'
+    script = f'display notification "{clean_msg}" with title "{clean_title}" sound name "default"'
     try:
         res = subprocess.run(["osascript", "-e", script], capture_output=True, text=True)
         if res.returncode != 0 and res.stderr:
@@ -174,7 +174,7 @@ def _send_linux_notification(title: str, message: str) -> bool:
     if shutil.which("notify-send"):
         try:
             res = subprocess.run(
-                ["notify-send", f"💡 {title}", message, "-i", "text-markdown"],
+                ["notify-send", title, message, "-i", "text-markdown"],
                 capture_output=True,
                 text=True,
             )
@@ -193,7 +193,7 @@ def _send_windows_notification(title: str, message: str) -> bool:
     <toast>
         <visual>
             <binding template="ToastText02">
-                <text id="1">💡 {title}</text>
+                <text id="1">{title}</text>
                 <text id="2">{message}</text>
             </binding>
         </visual>
@@ -218,7 +218,7 @@ def _send_fallback_notification(title: str, message: str) -> bool:
     try:
         from plyer import notification
         notification.notify(
-            title=f"💡 {title}",
+            title=title,
             message=message,
             app_name="Markdown Notifier",
             timeout=10,
@@ -226,5 +226,5 @@ def _send_fallback_notification(title: str, message: str) -> bool:
         return True
     except Exception:
         # If no notification system is available, output to console
-        print(f"[NOTIFICATION] 💡 {title}\n{message}")
+        print(f"[NOTIFICATION] {title}\n{message}")
         return False

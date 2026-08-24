@@ -40,7 +40,7 @@ class TestNotifier(unittest.TestCase):
         args = mock_run.call_args[0][0]
         self.assertEqual(args[0], "terminal-notifier")
         self.assertIn("-title", args)
-        self.assertEqual(args[args.index("-title") + 1], "💡 My Title")
+        self.assertEqual(args[args.index("-title") + 1], "My Title")
         self.assertIn("-message", args)
         self.assertEqual(args[args.index("-message") + 1], "My Message")
 
