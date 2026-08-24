@@ -133,11 +133,6 @@ You can set a default configuration by creating `~/.config/md-nugget-notifier/co
 }
 ```
 
-### Environment Variables
-You can also configure via environment variables:
-- `MD_NOTES_DIR` or `NOTES_DIR` or `OBSIDIAN_VAULT_PATH`: Default path to markdown folder.
-- `MD_NOTIFIER_OPENER`: Default opener strategy.
-
 ---
 
 ## ⏰ Scheduling Automated Daily / Hourly Notifications
