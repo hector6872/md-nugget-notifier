@@ -4,7 +4,13 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from md_nugget_notifier.vault import find_all_markdown_notes, pick_random_note
+from md_nugget_notifier.vault import (
+    find_all_markdown_notes,
+    is_dataless_file,
+    pick_random_note,
+    trigger_background_download,
+)
+from unittest.mock import MagicMock, patch
 
 
 class TestVaultScanner(unittest.TestCase):
@@ -62,6 +68,52 @@ class TestVaultScanner(unittest.TestCase):
             root = Path(tmpdir)
             chosen = pick_random_note(root)
             self.assertIsNone(chosen)
+
+    def test_is_dataless_file(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            f = Path(tmpdir) / "normal.md"
+            f.write_text("content", encoding="utf-8")
+            self.assertFalse(is_dataless_file(f))
+
+            mock_stat = MagicMock()
+            mock_stat.st_flags = 0x40000000  # SF_DATALESS
+            with patch("sys.platform", "darwin"):
+                self.assertTrue(is_dataless_file(mock_stat))
+            with patch("sys.platform", "linux"):
+                self.assertFalse(is_dataless_file(mock_stat))
+
+    def test_pick_random_note_prefers_hydrated(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            n1 = root / "hydrated.md"
+            n1.write_text("hydrated", encoding="utf-8")
+            n2 = root / "dataless.md"
+            n2.write_text("dataless", encoding="utf-8")
+
+            def mock_dataless(p):
+                return p.name == "dataless.md"
+
+            with patch("md_nugget_notifier.vault.is_dataless_file", side_effect=mock_dataless):
+                chosen = pick_random_note(root)
+                self.assertEqual(chosen.name, "hydrated.md")
+
+    def test_pick_random_note_exclude_files(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            n1 = root / "note1.md"
+            n1.write_text("content 1", encoding="utf-8")
+            n2 = root / "note2.md"
+            n2.write_text("content 2", encoding="utf-8")
+
+            chosen = pick_random_note(root, exclude_files={n1})
+            self.assertEqual(chosen.name, "note2.md")
+
+    @patch("subprocess.Popen")
+    @patch("shutil.which", return_value="/usr/bin/brctl")
+    def test_trigger_background_download(self, mock_which, mock_popen):
+        with patch("sys.platform", "darwin"):
+            trigger_background_download(Path("/test/path.md"))
+            mock_popen.assert_called_once()
 
 
 if __name__ == "__main__":

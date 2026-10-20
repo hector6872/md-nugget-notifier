@@ -129,10 +129,18 @@ def _send_macos_notification(
     clean_title = title.replace('"', '\\"')
     clean_msg = message.replace('"', '\\"')
 
+    # Locate terminal-notifier (including standard Homebrew paths for cron/launchd)
+    tn_cmd = shutil.which("terminal-notifier")
+    if not tn_cmd:
+        for candidate in ("/opt/homebrew/bin/terminal-notifier", "/usr/local/bin/terminal-notifier"):
+            if Path(candidate).is_file():
+                tn_cmd = candidate
+                break
+
     # If terminal-notifier is available and we have a target file, attach direct click action
-    if shutil.which("terminal-notifier") and file_path:
+    if tn_cmd and file_path:
         args = [
-            "terminal-notifier",
+            tn_cmd if not shutil.which("terminal-notifier") else "terminal-notifier",
             "-title", title,
             "-message", message,
             "-group", "md-nugget-notifier",
@@ -154,6 +162,12 @@ def _send_macos_notification(
             res = subprocess.run(args, capture_output=True, text=True)
             if res.returncode == 0:
                 return True
+            if res.stderr and "turned off" in res.stderr.lower():
+                print(
+                    "Warning: terminal-notifier is disabled in System Settings > Notifications. "
+                    "Enable it to allow clicking notifications to open Obsidian / notes.",
+                    file=sys.stderr,
+                )
         except Exception:
             pass
 

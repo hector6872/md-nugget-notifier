@@ -2,14 +2,44 @@
 
 import os
 import random
+import shutil
+import stat
+import subprocess
+import sys
 from pathlib import Path
-from typing import List, Optional, Set
+from typing import List, Optional, Set, Union
 
 DEFAULT_IGNORED_DIRS = {
     "node_modules",
     "venv",
     "__pycache__",
 }
+
+SF_DATALESS = getattr(stat, "SF_DATALESS", 0x40000000)
+
+
+def is_dataless_file(target: Union[Path, os.stat_result]) -> bool:
+    """Check if file is a dataless cloud placeholder on macOS (e.g. Dropbox 'Online-Only', iCloud)."""
+    if sys.platform != "darwin":
+        return False
+    try:
+        st = target if isinstance(target, os.stat_result) else target.stat()
+        return bool(getattr(st, "st_flags", 0) & SF_DATALESS)
+    except OSError:
+        return False
+
+
+def trigger_background_download(file_path: Path) -> None:
+    """Trigger background download of evicted iCloud file on macOS using brctl."""
+    if sys.platform == "darwin" and shutil.which("brctl"):
+        try:
+            subprocess.Popen(
+                ["brctl", "download", str(file_path)],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+        except Exception:
+            pass
 
 
 def find_all_markdown_notes(
@@ -73,14 +103,25 @@ def pick_random_note(
     ignored_dir_names: Optional[Set[str]] = None,
     min_size_bytes: int = 1,
     recursive: bool = True,
+    exclude_files: Optional[Set[Path]] = None,
 ) -> Optional[Path]:
-    """Select a random markdown note from the given directory."""
+    """Select a random markdown note from the given directory.
+
+    On macOS, prefers locally cached/hydrated notes over evicted iCloud dataless files.
+    """
     notes = find_all_markdown_notes(
         directory=directory,
         ignored_dir_names=ignored_dir_names,
         min_size_bytes=min_size_bytes,
         recursive=recursive,
     )
+    if exclude_files:
+        notes = [n for n in notes if n not in exclude_files]
+
     if not notes:
         return None
+
+    hydrated = [n for n in notes if not is_dataless_file(n)]
+    if hydrated:
+        return random.choice(hydrated)
     return random.choice(notes)

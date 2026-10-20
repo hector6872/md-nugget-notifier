@@ -8,6 +8,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
+import md_nugget_notifier.cli
 from md_nugget_notifier.cli import main
 
 
@@ -125,6 +126,51 @@ class TestCLI(unittest.TestCase):
                     main()
                     mock_pick.assert_called_once()
                     self.assertFalse(mock_pick.call_args[1].get("recursive"))
+
+    @patch("md_nugget_notifier.cli.pick_random_note")
+    @patch("md_nugget_notifier.cli.trigger_background_download")
+    @patch("md_nugget_notifier.cli.send_notification")
+    def test_cli_retries_on_resource_deadlock(self, mock_notify, mock_trigger, mock_pick):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            note1 = Path(tmpdir) / "deadlocked.md"
+            note1.write_text("dummy", encoding="utf-8")
+            note2 = Path(tmpdir) / "healthy.md"
+            note2.write_text("Hello healthy world", encoding="utf-8")
+
+            mock_pick.side_effect = [note1, note2]
+
+            original_extract = md_nugget_notifier.cli.extract_title_and_snippet
+
+            def mock_extract(path, max_length=220):
+                if path.name == "deadlocked.md":
+                    raise OSError(11, "Resource deadlock avoided")
+                return original_extract(path, max_length=max_length)
+
+            with patch("md_nugget_notifier.cli.extract_title_and_snippet", side_effect=mock_extract):
+                test_args = ["md-nugget-notifier", "--dir", tmpdir]
+                with patch.object(sys, "argv", test_args):
+                    with patch("sys.stdout", new=io.StringIO()):
+                        code = main()
+                        self.assertEqual(code, 0)
+                        mock_notify.assert_called_once()
+                        self.assertEqual(mock_notify.call_args[1]["title"], "healthy")
+                        mock_trigger.assert_called_once_with(note1)
+
+    @patch("md_nugget_notifier.cli.extract_title_and_snippet")
+    def test_cli_all_notes_deadlocked_error_message(self, mock_extract):
+        mock_extract.side_effect = OSError(11, "Resource deadlock avoided")
+        with tempfile.TemporaryDirectory() as tmpdir:
+            note = Path(tmpdir) / "offline.md"
+            note.write_text("dummy", encoding="utf-8")
+
+            test_args = ["md-nugget-notifier", "--dir", tmpdir]
+            with patch.object(sys, "argv", test_args):
+                with patch("sys.stderr", new=io.StringIO()) as fake_err:
+                    code = main()
+                    self.assertEqual(code, 1)
+                    err_out = fake_err.getvalue()
+                    self.assertIn("Resource deadlock avoided", err_out)
+                    self.assertIn("Make available offline", err_out)
 
 
 if __name__ == "__main__":

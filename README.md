@@ -63,6 +63,22 @@ To receive beautiful banner notifications with click-to-open support on macOS:
    ```
    This displays an instant native macOS pop-up modal on your screen.
 
+### ⚠️ Troubleshooting macOS Notifications
+
+> [!TIP]
+> **Clicking notification opens "Script Editor" instead of your note/Obsidian?**
+>
+> 1. Open **System Settings > Notifications**.
+> 2. Find **terminal-notifier** in the applications list and ensure **Allow Notifications** is enabled.
+> *(macOS automatically turns this off when Homebrew updates `terminal-notifier` to a new version).*
+
+> [!TIP]
+> **Error `[Errno 11] Resource deadlock avoided`?**
+>
+> This happens when notes are stored in cloud storage (Dropbox, iCloud Drive, OneDrive) with "Online-Only" / "Smart Sync" enabled. macOS marks these files as dataless placeholders that cannot be read synchronously from scripts.
+>
+> **Fix:** Right-click your notes folder in Finder and select **Make Available Offline** (Dropbox) or **Keep Downloaded** (iCloud). `md-nugget-notifier` automatically filters out un-downloaded files and prioritizes locally available notes.
+
 ---
 
 ## 🛠️ CLI Usage
