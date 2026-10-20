@@ -80,10 +80,7 @@ def strip_leading_metadata(text: str) -> str:
 
 def extract_title_and_snippet(file_path: Path, max_length: int = 220) -> Tuple[str, str]:
     """Parse a markdown file and extract clean title and first relevant paragraph snippet."""
-    try:
-        raw_text = file_path.read_text(encoding="utf-8", errors="replace")
-    except Exception as e:
-        return file_path.stem, f"Could not read note: {e}"
+    raw_text = file_path.read_text(encoding="utf-8", errors="replace")
 
     frontmatter, body = strip_yaml_frontmatter(raw_text)
 

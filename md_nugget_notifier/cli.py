@@ -3,6 +3,7 @@
 import argparse
 import json
 import os
+import random
 import sys
 from pathlib import Path
 
@@ -11,7 +12,12 @@ from .config import load_config
 from .notifier import send_notification, show_alert
 from .opener import open_note
 from .parser import extract_title_and_snippet
-from .vault import pick_random_note
+from .vault import (
+    find_all_markdown_notes,
+    is_dataless_file,
+    pick_random_note,
+    trigger_background_download,
+)
 
 
 def main() -> int:
@@ -115,33 +121,59 @@ def main() -> int:
             send_notification(title="Error", message=err_msg)
         return 1
 
-    # Pick a random note
-    chosen_file = pick_random_note(
-        directory=cfg.notes_dir,
-        ignored_dir_names=set(cfg.ignored_dirs),
-        min_size_bytes=cfg.min_size_bytes,
-        recursive=cfg.recursive,
-    )
+    # Pick a random note, retrying up to 15 times if a note is unreadable (e.g. evicted iCloud file)
+    chosen_file = None
+    title, snippet = None, None
+    last_error = None
+    excluded_files = set()
 
-    if not chosen_file:
-        err_msg = f"Error: No markdown (.md) notes found in '{cfg.notes_dir}'."
+    for _ in range(15):
+        candidate = pick_random_note(
+            directory=cfg.notes_dir,
+            ignored_dir_names=set(cfg.ignored_dirs),
+            min_size_bytes=cfg.min_size_bytes,
+            recursive=cfg.recursive,
+            exclude_files=excluded_files,
+        )
+        if not candidate:
+            break
+        try:
+            title, snippet = extract_title_and_snippet(
+                candidate, max_length=cfg.max_snippet_length
+            )
+            chosen_file = candidate
+            break
+        except OSError as e:
+            last_error = e
+            excluded_files.add(candidate)
+            trigger_background_download(candidate)
+            continue
+
+    if not chosen_file or title is None or snippet is None:
+        if last_error:
+            err_msg = (
+                f"Error: Could not read notes in '{cfg.notes_dir}' ({last_error}). "
+                "If using Dropbox, iCloud, or cloud storage, make sure notes are downloaded locally "
+                "('Make available offline' / 'Keep Downloaded' in Finder)."
+            )
+        else:
+            err_msg = f"Error: No markdown (.md) notes found in '{cfg.notes_dir}'."
+
         if args.json:
             print(json.dumps({"error": err_msg}))
         else:
             print(err_msg, file=sys.stderr)
 
         if args.alert:
-            show_alert(title="Error: No Notes Found", message=err_msg)
+            show_alert(title="Error: No Notes Found" if not last_error else "Error: Unreadable Notes", message=err_msg)
         elif not args.preview and not args.json:
             send_notification(
-                title="Error: No Notes Found",
-                message=f"No markdown (.md) notes found in {cfg.notes_dir.name or cfg.notes_dir}.",
+                title="Error: No Notes Found" if not last_error else "Error: Unreadable Notes",
+                message=f"No markdown (.md) notes found in {cfg.notes_dir.name or cfg.notes_dir}."
+                if not last_error
+                else f"Could not read notes in {cfg.notes_dir.name or cfg.notes_dir} ({last_error}).",
             )
         return 1
-
-    title, snippet = extract_title_and_snippet(
-        chosen_file, max_length=cfg.max_snippet_length
-    )
 
     # Output / Action handling
     if args.json:
